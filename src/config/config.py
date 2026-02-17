@@ -21,19 +21,6 @@ class Settings:
     # NewsAPI.org
     newsapi_key: str = field(default_factory=lambda: os.getenv("NEWSAPI_KEY", ""))
 
-    # WhatsApp Cloud API (Meta)
-    whatsapp_phone_number_id: str = field(
-        default_factory=lambda: os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
-    )
-    whatsapp_access_token: str = field(
-        default_factory=lambda: os.getenv("WHATSAPP_ACCESS_TOKEN", "")
-    )
-
-    # Recipient
-    recipient_phone_number: str = field(
-        default_factory=lambda: os.getenv("RECIPIENT_PHONE_NUMBER", "")
-    )
-
     # Telegram Bot API
     telegram_bot_token: str = field(
         default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -55,9 +42,8 @@ class Settings:
         required = {
             "ANTHROPIC_API_KEY": self.anthropic_api_key,
             "NEWSAPI_KEY": self.newsapi_key,
-            "WHATSAPP_PHONE_NUMBER_ID": self.whatsapp_phone_number_id,
-            "WHATSAPP_ACCESS_TOKEN": self.whatsapp_access_token,
-            "RECIPIENT_PHONE_NUMBER": self.recipient_phone_number,
+            "TELEGRAM_BOT_TOKEN": self.telegram_bot_token,
+            "TELEGRAM_CHAT_ID": self.telegram_chat_id,
         }
         return [key for key, value in required.items() if not value]
 

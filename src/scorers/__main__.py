@@ -14,7 +14,10 @@ logging.basicConfig(
     stream=sys.stderr,
 )
 
-from src.fetcher import fetch_all_articles
+from src.container import RSS_FEEDS
+from src.fetchers import CompositeFetcher
+from src.fetchers.newsapi_fetcher import NewsAPIFetcher
+from src.fetchers.rss_fetcher import RSSFetcher
 from src.scorers import ClaudeScorer
 
 
@@ -29,9 +32,14 @@ def main() -> None:
         print("ERROR: ANTHROPIC_API_KEY environment variable is not set.")
         sys.exit(1)
 
-    # Step 1: Fetch articles using the old fetcher
+    # Step 1: Fetch articles using CompositeFetcher
     print("Fetching articles...")
-    articles = fetch_all_articles()
+    fetchers = [RSSFetcher(name=feed["name"], url=feed["url"]) for feed in RSS_FEEDS]
+    newsapi_key = os.environ.get("NEWSAPI_KEY", "")
+    if newsapi_key:
+        fetchers.append(NewsAPIFetcher(api_key=newsapi_key))
+    composite = CompositeFetcher(fetchers=fetchers)
+    articles = composite.fetch()
 
     if not articles:
         print("No articles fetched. Check logs above for errors.")
