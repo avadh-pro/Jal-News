@@ -18,12 +18,14 @@ logger = logging.getLogger(__name__)
 # RSS feed sources used by the pipeline
 RSS_FEEDS = [
     {"name": "ScienceDaily Health", "url": "https://www.sciencedaily.com/rss/health_medicine.xml"},
-    {"name": "Medical News Today", "url": "https://www.medicalnewstoday.com/rss"},
+    {"name": "BBC Health", "url": "http://feeds.bbci.co.uk/news/health/rss.xml"},  # NEW - replaces Medical News Today
     {"name": "Medical Xpress", "url": "https://medicalxpress.com/rss-feed/"},
     {"name": "WHO News", "url": "https://www.who.int/rss-feeds/news-english.xml"},
-    {"name": "Healthline", "url": "https://www.healthline.com/rss"},
+    {"name": "STAT News", "url": "https://www.statnews.com/feed/"},  # NEW - replaces Healthline
     {"name": "ET HealthWorld", "url": "https://health.economictimes.indiatimes.com/rss/topstories"},
     {"name": "PhysioUpdate", "url": "https://www.physioupdate.co.uk/feed/"},
+    {"name": "CDC Newsroom", "url": "https://tools.cdc.gov/podcasts/feed.asp?feedid=183"},  # NEW - additional source
+    {"name": "Health Affairs", "url": "https://www.healthaffairs.org/action/showFeed?type=etoc&feed=rss&jc=hlthaff"},  # NEW - additional source
 ]
 
 

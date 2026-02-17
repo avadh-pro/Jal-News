@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Optional
 
 import requests
@@ -52,13 +52,9 @@ class NewsAPIFetcher(BaseFetcher):
             logger.warning("No NewsAPI key provided. Skipping NewsAPI.")
             return []
 
-        from_date = (datetime.now(timezone.utc) - timedelta(hours=24)).strftime(
-            "%Y-%m-%dT%H:%M:%SZ"
-        )
-
+        # REMOVED: from_date filter — free tier doesn't work well with date filters
         params = {
             "q": NEWSAPI_HEALTH_QUERY,
-            "from": from_date,
             "sortBy": "publishedAt",
             "pageSize": NEWSAPI_PAGE_SIZE,
             "language": "en",
