@@ -1,4 +1,4 @@
-"""AI-powered article scorer using Anthropic Claude 3.5 Haiku."""
+"""AI-powered article scorer using Anthropic Claude 3 Haiku."""
 
 import json
 import logging
@@ -14,7 +14,7 @@ from .prompt import SYSTEM_PROMPT, build_scoring_prompt
 
 logger = logging.getLogger(__name__)
 
-MODEL = "claude-3-5-haiku-20241022"
+MODEL = "claude-3-haiku-20240307"
 BATCH_SIZE = 10
 DEFAULT_TOP_N = 5
 
@@ -60,7 +60,7 @@ def _score_batch(
     """
     batch_dicts = [
         {
-            "index": start_index + i,
+            "index": i,
             "title": a.title,
             "description": a.description or "(no description)",
             "source_name": a.source_name,
@@ -78,7 +78,12 @@ def _score_batch(
             messages=[{"role": "user", "content": prompt}],
         )
         raw_text = response.content[0].text
-        return _parse_scores(raw_text)
+        parsed = _parse_scores(raw_text)
+        # Convert 0-based local indices to global indices
+        for entry in parsed:
+            if "index" in entry:
+                entry["index"] = start_index + int(entry["index"])
+        return parsed
     except anthropic.APIError as e:
         logger.error(f"Anthropic API error scoring batch at index {start_index}: {e}")
         return []
@@ -91,7 +96,7 @@ def score_articles(
     articles: list[Article],
     top_n: int = DEFAULT_TOP_N,
 ) -> list[ScoredArticle]:
-    """Score and rank articles using Claude 3.5 Haiku.
+    """Score and rank articles using Claude 3 Haiku.
 
     Articles are sent in batches to minimize API calls. Each article receives
     scores for shareability, novelty, relevance, and viral potential (1-10).
