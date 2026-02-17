@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import logging
 import time
+from typing import TYPE_CHECKING
 
 from src.core.interfaces import IArticleFetcher, IArticleScorer, IMessageSender
+
+if TYPE_CHECKING:
+    from src.dedup.tracker import SentArticleTracker
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +24,9 @@ class NewsPipeline:
         fetcher: Component that fetches articles from external sources.
         scorer: Component that scores and ranks articles.
         sender: Component that sends the curated digest.
+        dedup_tracker: Optional deduplication tracker. When provided,
+            already-sent articles are filtered out before scoring and
+            newly sent articles are recorded after delivery.
     """
 
     def __init__(
@@ -27,10 +34,12 @@ class NewsPipeline:
         fetcher: IArticleFetcher,
         scorer: IArticleScorer,
         sender: IMessageSender,
+        dedup_tracker: SentArticleTracker | None = None,
     ) -> None:
         self._fetcher = fetcher
         self._scorer = scorer
         self._sender = sender
+        self._dedup_tracker = dedup_tracker
 
     def run(self, top_n: int = 5, dry_run: bool = False) -> bool:
         """Execute the full pipeline: fetch → score → send.
@@ -57,6 +66,13 @@ class NewsPipeline:
             logger.warning("No articles fetched — nothing to do")
             return False
 
+        # --- Stage 1.5: Deduplication (filter already-sent articles) ---
+        if self._dedup_tracker is not None:
+            articles = self._dedup_tracker.filter_unsent(articles)
+            if not articles:
+                logger.warning("All fetched articles already sent — nothing new")
+                return False
+
         # --- Stage 2: Score and rank ---
         try:
             top_articles = self._scorer.score(articles, top_n=top_n)
@@ -79,6 +95,10 @@ class NewsPipeline:
         if not result.success:
             logger.error("Delivery failed: %s", result.error)
             return False
+
+        # --- Stage 3.5: Mark sent articles for deduplication ---
+        if self._dedup_tracker is not None and not dry_run:
+            self._dedup_tracker.mark_sent([a.url for a in top_articles])
 
         elapsed = time.time() - start
         logger.info(

@@ -22,6 +22,9 @@ env/
 .DS_Store
 Thumbs.db
 
+# Deduplication state (local-only, not persisted in CI)
+.sent_articles.json
+
 # Distribution
 dist/
 build/

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import requests
@@ -71,6 +71,8 @@ class NewsAPIFetcher(BaseFetcher):
             )
             return []
 
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=3)
+
         articles: list[Article] = []
         for item in data.get("articles", []):
             title = (item.get("title") or "").strip()
@@ -86,6 +88,12 @@ class NewsAPIFetcher(BaseFetcher):
             published_at = _parse_newsapi_date(item.get("publishedAt"))
             image_url = item.get("urlToImage")
 
+            # Only include articles from the last 3 days.
+            # Articles without a publishedAt get datetime.now() from
+            # _parse_newsapi_date, so they pass through by default.
+            if published_at < cutoff_date:
+                continue
+
             articles.append(
                 Article(
                     title=title,
@@ -97,5 +105,9 @@ class NewsAPIFetcher(BaseFetcher):
                 )
             )
 
+        logger.info(
+            "NewsAPI: %d raw results, %d after 3-day filter",
+            len(data.get("articles", [])), len(articles),
+        )
         return articles
 
