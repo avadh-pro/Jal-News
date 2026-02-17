@@ -37,6 +37,11 @@ class Settings:
         default_factory=lambda: int(os.getenv("TOP_N_ARTICLES", "5"))
     )
 
+    # Deduplication — set ENABLE_DEDUP=true to track and skip already-sent articles
+    enable_dedup: bool = field(
+        default_factory=lambda: os.getenv("ENABLE_DEDUP", "true").lower() in ("true", "1", "yes")
+    )
+
     def validate(self) -> list[str]:
         """Return a list of missing required configuration keys."""
         required = {

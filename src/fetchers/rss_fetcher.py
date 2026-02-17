@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import feedparser
@@ -128,18 +128,28 @@ class RSSFetcher(BaseFetcher):
         return self._url
 
     def _fetch_impl(self) -> list[Article]:
-        """Fetch and parse the RSS feed."""
+        """Fetch and parse the RSS feed, filtering to last 3 days."""
         feed = feedparser.parse(self._url)
 
         if feed.bozo and not feed.entries:
             logger.warning(f"Failed to parse RSS feed '{self._name}': {feed.bozo_exception}")
             return []
 
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=3)
+
         articles: list[Article] = []
         for entry in feed.entries:
             article = _entry_to_article(entry, source_name=self._name)
             if article:
-                articles.append(article)
+                # Only include articles from the last 3 days.
+                # Articles without a real published_at get datetime.now() in
+                # _entry_to_article, so they pass through by default.
+                if article.published_at >= cutoff_date:
+                    articles.append(article)
 
+        logger.info(
+            "RSS '%s': %d entries parsed, %d after 3-day filter",
+            self._name, len(feed.entries), len(articles),
+        )
         return articles
 

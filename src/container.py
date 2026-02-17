@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from src.config.config import Settings, settings as _default_settings
+from src.dedup.tracker import SentArticleTracker
 from src.fetchers.composite import CompositeFetcher
 from src.fetchers.newsapi_fetcher import NewsAPIFetcher
 from src.fetchers.rss_fetcher import RSSFetcher
@@ -68,9 +69,18 @@ def create_pipeline(settings: Settings | None = None) -> NewsPipeline:
         formatter=formatter,
     )
 
+    # --- Deduplication (optional) ---
+    dedup_tracker = None
+    if settings.enable_dedup:
+        dedup_tracker = SentArticleTracker()
+        logger.info("Deduplication enabled — tracking sent articles")
+    else:
+        logger.info("Deduplication disabled (ENABLE_DEDUP != true)")
+
     return NewsPipeline(
         fetcher=composite_fetcher,
         scorer=scorer,
         sender=sender,
+        dedup_tracker=dedup_tracker,
     )
 
