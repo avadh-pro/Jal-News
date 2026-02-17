@@ -23,9 +23,10 @@ def main() -> None:
 
     setup_logging()
 
-    from src.pipeline import run_pipeline
+    from src.container import create_pipeline
 
-    success = run_pipeline(dry_run=args.dry_run)
+    pipeline = create_pipeline()
+    success = pipeline.run(dry_run=args.dry_run)
     sys.exit(0 if success else 1)
 
 

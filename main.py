@@ -11,7 +11,7 @@ import time
 import schedule
 
 from src.config import settings
-from src.pipeline import run_pipeline
+from src.container import create_pipeline
 from src.utils import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,8 @@ def _job() -> None:
     """Scheduled job wrapper."""
     logger.info("Scheduled run triggered")
     try:
-        success = run_pipeline()
+        pipeline = create_pipeline()
+        success = pipeline.run()
         if success:
             logger.info("Scheduled run completed successfully")
         else:

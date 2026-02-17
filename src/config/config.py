@@ -34,6 +34,14 @@ class Settings:
         default_factory=lambda: os.getenv("RECIPIENT_PHONE_NUMBER", "")
     )
 
+    # Telegram Bot API
+    telegram_bot_token: str = field(
+        default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", "")
+    )
+    telegram_chat_id: str = field(
+        default_factory=lambda: os.getenv("TELEGRAM_CHAT_ID", "")
+    )
+
     # Schedule
     schedule_time: str = field(default_factory=lambda: os.getenv("SCHEDULE_TIME", "07:00"))
 
