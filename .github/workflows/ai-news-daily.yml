@@ -12,12 +12,12 @@
 #   - ANTHROPIC_API_KEY, NEWSAPI_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 # ============================================================================
 
-name: AI News Daily Digest
+name: AI News Digest (Every 2 Days)
 
 on:
   schedule:
-    # Daily at 2:30 AM UTC = 8:00 AM IST
-    - cron: '30 2 * * *'
+    # Every 2 days at 2:30 AM UTC = 8:00 AM IST
+    - cron: '30 2 */2 * *'
 
   workflow_dispatch:
     inputs:
