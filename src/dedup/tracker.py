@@ -26,6 +26,20 @@ _DEFAULT_STORAGE = ".sent_articles.json"
 _CLEANUP_DAYS = 30
 
 
+def storage_path_for_channel(channel_slug: str | None = None) -> str:
+    """Return the dedup storage path for a given channel.
+
+    Args:
+        channel_slug: Channel identifier. When None, uses the default path.
+
+    Returns:
+        Path string like ``.sent_articles_ai-video.json``.
+    """
+    if not channel_slug:
+        return _DEFAULT_STORAGE
+    return f".sent_articles_{channel_slug}.json"
+
+
 class SentArticleTracker:
     """Tracks URLs of articles already sent to avoid duplicates.
 

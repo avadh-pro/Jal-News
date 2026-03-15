@@ -4,7 +4,7 @@ Provides Article and ScoredArticle dataclasses with proper inheritance
 (ScoredArticle extends Article) to satisfy the Liskov Substitution Principle.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -19,6 +19,9 @@ class Article:
     source_name: str
     published_at: datetime
     image_url: Optional[str] = None
+    source_tier: str = "general"
+    credibility_weight: float = 1.0
+    coverage_count: int = 1
 
     def __hash__(self) -> int:
         return hash(self.url)
@@ -51,7 +54,9 @@ class ScoredArticle(Article):
             source_name=article.source_name,
             published_at=article.published_at,
             image_url=article.image_url,
+            source_tier=article.source_tier,
+            credibility_weight=article.credibility_weight,
+            coverage_count=article.coverage_count,
             score=score,
             summary=summary,
         )
-

@@ -1,10 +1,9 @@
 # ============================================================================
-# Jal News — Health News Curator (Every 2 Days) (GitHub Actions)
+# Jal News — Multi-Topic News Curator (GitHub Actions)
 # ============================================================================
 #
-# Runs the AI-powered health news pipeline every 2 days at 7:00 AM IST.
-# Fetches news from 9+ sources, scores with Claude AI, and sends a
-# curated digest to Telegram.
+# Runs the AI-powered news pipeline every 2 days at 7:00 AM IST.
+# Supports multiple channels — each channel is a separate topic/audience.
 #
 # Schedule: 1:30 AM UTC = 7:00 AM IST (every 2 days)
 # Manual:   Can be triggered from the Actions tab → "Run workflow"
@@ -13,10 +12,10 @@
 #   - ANTHROPIC_API_KEY   : Claude AI API key for article scoring
 #   - NEWSAPI_KEY         : NewsAPI.org key for additional sources
 #   - TELEGRAM_BOT_TOKEN  : Telegram Bot API token for message delivery
-#   - TELEGRAM_CHAT_ID    : Target Telegram chat/group ID
+#   - TELEGRAM_CHAT_ID    : Default Telegram chat/group ID
 # ============================================================================
 
-name: Health News Curator (Every 2 Days)
+name: News Curator (Every 2 Days)
 
 on:
   # Scheduled trigger — runs every 2 days at 1:30 AM UTC (7:00 AM IST)
@@ -25,6 +24,11 @@ on:
 
   # Manual trigger — allows running from the GitHub Actions tab
   workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Channel slug to run (leave empty for default health channel)'
+        required: false
+        default: ''
 
 jobs:
   fetch-and-send:
@@ -58,9 +62,13 @@ jobs:
           pip install -r requirements.txt
 
       # Step 5: Run the news curator pipeline
-      # Fetches articles → Scores with Claude AI → Sends to Telegram
       - name: Run news curator
-        run: python fetch.py
+        run: |
+          if [ -n "${{ github.event.inputs.channel }}" ]; then
+            python fetch.py --channel "${{ github.event.inputs.channel }}"
+          else
+            python fetch.py --channel health
+          fi
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}

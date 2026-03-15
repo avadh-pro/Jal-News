@@ -1,0 +1,68 @@
+name: "Amaro Labs Health Digest"
+
+feeds:
+  # Tier: primary — official health bodies and peer-reviewed sources
+  - name: "WHO News"
+    url: "https://www.who.int/rss-feeds/news-english.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "CDC Newsroom"
+    url: "https://tools.cdc.gov/podcasts/feed.asp?feedid=183"
+    tier: "primary"
+    weight: 1.0
+
+  # Tier: major-outlet — established health/science journalism
+  - name: "STAT News"
+    url: "https://www.statnews.com/feed/"
+    tier: "major-outlet"
+    weight: 0.95
+  - name: "BBC Health"
+    url: "http://feeds.bbci.co.uk/news/health/rss.xml"
+    tier: "major-outlet"
+    weight: 0.9
+  - name: "Health Affairs"
+    url: "https://www.healthaffairs.org/action/showFeed?type=etoc&feed=rss&jc=hlthaff"
+    tier: "major-outlet"
+    weight: 0.9
+  - name: "ScienceDaily Health"
+    url: "https://www.sciencedaily.com/rss/health_medicine.xml"
+    tier: "major-outlet"
+    weight: 0.85
+
+  # Tier: niche — specialized health/physio sources
+  - name: "Medical Xpress"
+    url: "https://medicalxpress.com/rss-feed/"
+    tier: "niche"
+    weight: 0.85
+  - name: "ET HealthWorld"
+    url: "https://health.economictimes.indiatimes.com/rss/topstories"
+    tier: "niche"
+    weight: 0.8
+  - name: "PhysioUpdate"
+    url: "https://www.physioupdate.co.uk/feed/"
+    tier: "niche"
+    weight: 0.8
+
+newsapi_query: >-
+  "health news" OR "medical research" OR "clinical trial"
+  OR "public health" OR "physiotherapy" OR "healthcare"
+
+newsapi_domains: "statnews.com,bbc.co.uk,who.int,sciencedaily.com,medicalxpress.com"
+
+scoring:
+  system_prompt: >-
+    You are an expert health news curator for Amaro Labs — a physiotherapist's
+    health & wellness channel ("Decoding your everyday health"). The audience
+    wants shareable, surprising health discoveries they can discuss with friends
+    and family. Strongly prefer articles from peer-reviewed sources, official
+    health bodies (WHO, CDC), and established medical journalism.
+  relevance_hint: >-
+    How relevant is this to everyday health & wellness for a general audience?
+    Bonus for physiotherapy/movement/pain science angle.
+
+formatting:
+  header_emoji: "🏥"
+  category_emojis: ["🧬", "🧠", "💊", "🏥", "🔬", "💪", "🩺", "🫀", "🦠", "🧪"]
+  footer_text: "Curated by AI for Amaro Labs"
+
+top_n: 5

@@ -1,0 +1,66 @@
+name: "AI Video Production Digest"
+
+feeds:
+  # Tier: primary — AI labs shipping video models
+  - name: "OpenAI News"
+    url: "https://openai.com/news/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Google DeepMind"
+    url: "https://deepmind.google/blog/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    tier: "primary"
+    weight: 0.95
+
+  # Tier: expert — VFX/film industry with AI coverage
+  - name: "fxguide"
+    url: "https://www.fxguide.com/feed/"
+    tier: "expert"
+    weight: 0.95
+  - name: "THE DECODER"
+    url: "https://the-decoder.com/feed/"
+    tier: "expert"
+    weight: 0.9
+  - name: "Cartoon Brew"
+    url: "https://www.cartoonbrew.com/feed"
+    tier: "niche"
+    weight: 0.85
+
+  # Tier: major-outlet — tech journalism covering AI video
+  - name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    tier: "major-outlet"
+    weight: 0.85
+  - name: "MIT Technology Review"
+    url: "https://www.technologyreview.com/feed/"
+    tier: "major-outlet"
+    weight: 0.85
+
+newsapi_query: >-
+  "AI video" OR "text to video" OR "video generation" OR "Sora" OR "Runway"
+  OR "Kling" OR "Veo" OR "Pika" OR "AI VFX" OR "AI filmmaking"
+  OR "AI animation" OR "Luma Dream Machine" OR "Seedance"
+
+newsapi_domains: "techcrunch.com,theverge.com,wired.com,arstechnica.com,fxguide.com"
+
+scoring:
+  system_prompt: >-
+    You are an expert AI video production curator. Your audience is video
+    creators, filmmakers, and motion designers who want to stay on top of
+    AI tools transforming video production — from text-to-video generators
+    to AI-powered editing, VFX, and animation. Prioritize announcements from
+    the labs building these tools (OpenAI/Sora, Google/Veo, Runway, Kling)
+    and hands-on analysis from VFX professionals.
+  relevance_hint: >-
+    How relevant is this to AI-powered video production, filmmaking, animation,
+    or VFX? Bonus for hands-on tools creators can use today and new model releases.
+
+formatting:
+  header_emoji: "🎬"
+  category_emojis: ["🎬", "🤖", "🎥", "🎞️", "✨", "🎨", "📹", "🖥️", "🎭", "🌟"]
+  footer_text: "Curated by AI for video creators"
+
+top_n: 5

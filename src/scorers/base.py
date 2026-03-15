@@ -10,6 +10,15 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BATCH_SIZE = 10
 
+# Scoring weights — credibility and novelty weighted higher than viral potential
+SCORE_WEIGHTS = {
+    "shareability": 0.20,
+    "novelty": 0.25,
+    "relevance": 0.25,
+    "viral_potential": 0.10,
+    "source_credibility": 0.20,
+}
+
 
 class BaseScorer(IArticleScorer):
     """Abstract base scorer that handles batching and result assembly.
@@ -41,7 +50,7 @@ class BaseScorer(IArticleScorer):
 
         Returns:
             List of score dicts with keys: index, shareability, novelty,
-            relevance, viral_potential, summary.
+            relevance, viral_potential, source_credibility, summary.
         """
         ...
 
@@ -57,9 +66,10 @@ class BaseScorer(IArticleScorer):
         """Score and rank articles, returning the top N.
 
         Articles are sent in batches to minimize API calls. Each article
-        receives scores for shareability, novelty, relevance, and viral
-        potential (1-10). A composite score (average of the four) is
-        calculated for ranking.
+        receives scores for shareability, novelty, relevance, viral
+        potential, and source credibility (1-10). A weighted composite
+        score is calculated for ranking, then multiplied by the source's
+        credibility_weight from the feed config.
 
         Args:
             articles: List of Article objects to score.
@@ -100,35 +110,26 @@ class BaseScorer(IArticleScorer):
                 logger.warning(
                     f"No score returned for article {i}: {article.title[:60]}"
                 )
-                scored.append(
-                    ScoredArticle(
-                        title=article.title,
-                        description=article.description,
-                        url=article.url,
-                        source_name=article.source_name,
-                        published_at=article.published_at,
-                        image_url=article.image_url,
-                        score=0.0,
-                        summary="",
-                    )
-                )
+                scored.append(ScoredArticle.from_article(article, score=0.0))
                 continue
 
-            composite = (
-                s.get("shareability", 0)
-                + s.get("novelty", 0)
-                + s.get("relevance", 0)
-                + s.get("viral_potential", 0)
-            ) / 4.0
+            # Weighted composite score
+            composite = sum(
+                s.get(dim, 0) * weight
+                for dim, weight in SCORE_WEIGHTS.items()
+            )
+
+            # Apply source credibility weight from feed config
+            composite *= article.credibility_weight
+
+            # Coverage breadth bonus: +5% per additional source covering this story
+            if article.coverage_count > 1:
+                coverage_bonus = 1.0 + (article.coverage_count - 1) * 0.05
+                composite *= min(coverage_bonus, 1.25)  # cap at 25% bonus
 
             scored.append(
-                ScoredArticle(
-                    title=article.title,
-                    description=article.description,
-                    url=article.url,
-                    source_name=article.source_name,
-                    published_at=article.published_at,
-                    image_url=article.image_url,
+                ScoredArticle.from_article(
+                    article,
                     score=round(composite, 2),
                     summary=s.get("summary", ""),
                 )
@@ -137,4 +138,3 @@ class BaseScorer(IArticleScorer):
         # Sort by score descending and return top N
         scored.sort(key=lambda a: a.score, reverse=True)
         return scored[:top_n]
-

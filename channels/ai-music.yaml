@@ -1,0 +1,68 @@
+name: "AI Music & Audio Digest"
+
+feeds:
+  # Tier: primary — AI labs shipping audio/music models
+  - name: "OpenAI News"
+    url: "https://openai.com/news/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Google DeepMind"
+    url: "https://deepmind.google/blog/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    tier: "primary"
+    weight: 0.95
+
+  # Tier: expert/niche — music industry + tech intersection
+  - name: "CDM (Create Digital Music)"
+    url: "https://cdm.link/feed/"
+    tier: "expert"
+    weight: 0.95
+  - name: "Music Ally"
+    url: "https://musically.com/feed/"
+    tier: "expert"
+    weight: 0.9
+  - name: "THE DECODER"
+    url: "https://the-decoder.com/feed/"
+    tier: "expert"
+    weight: 0.9
+
+  # Tier: major-outlet
+  - name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    tier: "major-outlet"
+    weight: 0.85
+
+  # Tier: community
+  - name: "Hacker News AI Music"
+    url: "https://hnrss.org/newest?q=AI+music+OR+AI+audio+OR+Suno+OR+Udio&points=30"
+    tier: "community"
+    weight: 0.7
+
+newsapi_query: >-
+  "AI music" OR "AI audio" OR "music generation" OR "Suno" OR "Udio"
+  OR "AI vocals" OR "AI mixing" OR "AI mastering" OR "text to music"
+  OR "ElevenLabs" OR "AI voice" OR "AI sound design"
+
+newsapi_domains: "techcrunch.com,theverge.com,musically.com,cdm.link,wired.com"
+
+scoring:
+  system_prompt: >-
+    You are an expert curator of AI music and audio news. Your audience is
+    music producers, sound designers, and audio engineers who want to know
+    about AI tools for music generation, audio processing, voice synthesis,
+    mixing, mastering, and sound design. Prioritize announcements from tools
+    they can actually use (Suno, Udio, ElevenLabs, etc.) and industry analysis
+    of how AI is changing music production workflows.
+  relevance_hint: >-
+    How relevant is this to AI-powered music creation, audio processing,
+    or sound design? Bonus for tools producers can use in their workflow.
+
+formatting:
+  header_emoji: "🎵"
+  category_emojis: ["🎵", "🤖", "🎧", "🎹", "🎤", "🎼", "🔊", "🎸", "🎺", "🎻"]
+  footer_text: "Curated by AI for music creators"
+
+top_n: 5

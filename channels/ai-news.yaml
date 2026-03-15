@@ -1,0 +1,79 @@
+name: "AI News Digest"
+
+feeds:
+  # Tier: primary — AI lab blogs (ground truth)
+  - name: "OpenAI News"
+    url: "https://openai.com/news/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Google DeepMind"
+    url: "https://deepmind.google/blog/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Microsoft Research"
+    url: "https://www.microsoft.com/en-us/research/feed/"
+    tier: "primary"
+    weight: 0.95
+
+  # Tier: expert — dedicated AI publications and analysts
+  - name: "THE DECODER"
+    url: "https://the-decoder.com/feed/"
+    tier: "expert"
+    weight: 0.95
+  - name: "Import AI"
+    url: "https://importai.substack.com/feed"
+    tier: "expert"
+    weight: 0.95
+
+  # Tier: major-outlet — top-tier tech journalism
+  - name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    tier: "major-outlet"
+    weight: 0.9
+  - name: "Wired AI"
+    url: "https://www.wired.com/feed/tag/ai/latest/rss"
+    tier: "major-outlet"
+    weight: 0.9
+  - name: "MIT Technology Review"
+    url: "https://www.technologyreview.com/feed/"
+    tier: "major-outlet"
+    weight: 0.9
+  - name: "Ars Technica"
+    url: "https://feeds.arstechnica.com/arstechnica/technology-lab"
+    tier: "major-outlet"
+    weight: 0.85
+
+  # Tier: community — high-signal community sources
+  - name: "Hacker News AI"
+    url: "https://hnrss.org/newest?q=AI+OR+LLM+OR+GPT+OR+Claude&points=50"
+    tier: "community"
+    weight: 0.75
+
+newsapi_query: >-
+  "artificial intelligence" OR "machine learning" OR "large language model"
+  OR "GPT" OR "Claude" OR "Gemini" OR "generative AI" OR "AI startup"
+
+newsapi_domains: "techcrunch.com,wired.com,arstechnica.com,theverge.com,technologyreview.com"
+
+scoring:
+  system_prompt: >-
+    You are an expert AI news curator for a technical audience that follows
+    the AI industry closely. They want to know about breakthrough research,
+    major product launches, significant funding rounds, policy developments,
+    and surprising applications of AI. They are NOT interested in generic
+    "AI is changing everything" think pieces — they want substance.
+  relevance_hint: >-
+    How relevant is this to the AI industry? Prioritize: new model releases,
+    benchmark results, policy/regulation changes, significant funding, and
+    novel applications. Penalize vague trend pieces and rehashed announcements.
+
+formatting:
+  header_emoji: "🤖"
+  category_emojis: ["🤖", "🧠", "⚡", "🔬", "💡", "🚀", "🔮", "📊", "🌐", "🔥"]
+  footer_text: "Curated by AI — the latest from the frontier"
+
+top_n: 5

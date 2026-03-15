@@ -1,0 +1,72 @@
+name: "AI Coding & Dev Tools Digest"
+
+feeds:
+  # Tier: primary — official sources for AI dev tools
+  - name: "GitHub Blog"
+    url: "https://github.blog/feed/"
+    tier: "primary"
+    weight: 1.0
+  - name: "OpenAI News"
+    url: "https://openai.com/news/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    tier: "primary"
+    weight: 0.95
+
+  # Tier: expert — the most influential voices in AI + dev tools
+  - name: "Simon Willison"
+    url: "https://simonwillison.net/atom/everything/"
+    tier: "expert"
+    weight: 1.0
+  - name: "THE DECODER"
+    url: "https://the-decoder.com/feed/"
+    tier: "expert"
+    weight: 0.9
+
+  # Tier: major-outlet
+  - name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    tier: "major-outlet"
+    weight: 0.85
+  - name: "Ars Technica"
+    url: "https://feeds.arstechnica.com/arstechnica/technology-lab"
+    tier: "major-outlet"
+    weight: 0.85
+
+  # Tier: community — developer community signals
+  - name: "Dev.to AI"
+    url: "https://dev.to/feed/tag/ai"
+    tier: "community"
+    weight: 0.65
+  - name: "Hacker News AI Coding"
+    url: "https://hnrss.org/newest?q=AI+coding+OR+copilot+OR+LLM+developer+OR+Claude+Code+OR+Cursor&points=50"
+    tier: "community"
+    weight: 0.75
+
+newsapi_query: >-
+  "AI coding" OR "AI developer tools" OR "code generation" OR "GitHub Copilot"
+  OR "Claude Code" OR "Cursor" OR "Windsurf" OR "AI IDE" OR "LLM programming"
+  OR "agentic coding" OR "AI pair programming" OR "vibe coding"
+
+newsapi_domains: "techcrunch.com,github.blog,arstechnica.com,theverge.com,wired.com"
+
+scoring:
+  system_prompt: >-
+    You are an expert curator of AI coding and developer tools news. Your
+    audience is software developers who want to stay ahead of AI-powered
+    development tools — code assistants, AI IDEs, code generation, automated
+    testing, AI debugging, and LLM-powered developer workflows. Prioritize
+    primary sources (GitHub official announcements, lab blogs) and expert
+    analysis (Simon Willison, etc.) over generic tech journalism rewrites.
+  relevance_hint: >-
+    How relevant is this to AI-assisted software development and developer
+    tools? Bonus for practical tools and workflows developers can adopt now.
+
+formatting:
+  header_emoji: "💻"
+  category_emojis: ["💻", "🤖", "⌨️", "🔧", "🚀", "🧩", "📦", "🐛", "⚡", "🔬"]
+  footer_text: "Curated by AI for developers"
+
+top_n: 5

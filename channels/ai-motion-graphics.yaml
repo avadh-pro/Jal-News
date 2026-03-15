@@ -1,0 +1,69 @@
+name: "AI Motion Graphics Digest"
+
+feeds:
+  # Tier: primary — AI labs shipping visual/design models
+  - name: "OpenAI News"
+    url: "https://openai.com/news/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Google DeepMind"
+    url: "https://deepmind.google/blog/rss.xml"
+    tier: "primary"
+    weight: 1.0
+  - name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    tier: "primary"
+    weight: 0.95
+
+  # Tier: expert — VFX/motion design industry
+  - name: "fxguide"
+    url: "https://www.fxguide.com/feed/"
+    tier: "expert"
+    weight: 0.95
+  - name: "Motionographer"
+    url: "https://motionographer.com/feed/"
+    tier: "expert"
+    weight: 0.9
+  - name: "THE DECODER"
+    url: "https://the-decoder.com/feed/"
+    tier: "expert"
+    weight: 0.9
+
+  # Tier: niche — creative industry publications
+  - name: "Creative Bloq"
+    url: "https://www.creativebloq.com/feed"
+    tier: "niche"
+    weight: 0.8
+
+  # Tier: major-outlet
+  - name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    tier: "major-outlet"
+    weight: 0.85
+
+newsapi_query: >-
+  "AI motion graphics" OR "AI animation" OR "AI design" OR "generative design"
+  OR "AI After Effects" OR "AI 3D" OR "AI visual effects" OR "AI Blender"
+  OR "AI motion design" OR "AI creative tools"
+
+newsapi_domains: "techcrunch.com,theverge.com,creativebloq.com,wired.com,fxguide.com"
+
+scoring:
+  system_prompt: >-
+    You are an expert curator of AI motion graphics and design news. Your
+    audience is motion designers, animators, and visual artists who want to
+    know about AI tools for motion graphics, 3D animation, generative design,
+    and visual effects workflows. Prioritize news about tools that integrate
+    into production pipelines (After Effects, Blender, Cinema 4D) and new
+    model capabilities from the labs.
+  relevance_hint: >-
+    How relevant is this to AI-powered motion graphics, animation, or visual
+    design? Bonus for tools that integrate into After Effects, Blender, or
+    similar production workflows.
+
+formatting:
+  header_emoji: "🎨"
+  category_emojis: ["🎨", "🤖", "✨", "🌀", "🎭", "🖌️", "💫", "🔮", "🌈", "⚡"]
+  footer_text: "Curated by AI for motion designers"
+
+top_n: 5

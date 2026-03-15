@@ -19,26 +19,42 @@ def _normalize_title(title: str) -> str:
 
 def _is_duplicate(
     article: Article, seen: list[Article], threshold: float = 0.85
-) -> bool:
-    """Check if an article is a duplicate based on URL or title similarity."""
+) -> Article | None:
+    """Check if an article is a duplicate based on URL or title similarity.
+
+    Returns the existing article if duplicate, None otherwise.
+    """
     norm_title = _normalize_title(article.title)
     for existing in seen:
         # Exact URL match
         if article.url == existing.url:
-            return True
+            return existing
         # Title similarity check
         existing_norm = _normalize_title(existing.title)
         if SequenceMatcher(None, norm_title, existing_norm).ratio() >= threshold:
-            return True
-    return False
+            return existing
+    return None
 
 
-def _deduplicate(articles: list[Article]) -> list[Article]:
-    """Remove duplicate articles based on URL and title similarity."""
+def _deduplicate_with_coverage(articles: list[Article]) -> list[Article]:
+    """Remove duplicate articles, tracking coverage count.
+
+    When the same story appears from multiple sources, keep the one with
+    the highest credibility_weight and record how many sources covered it.
+    """
     unique: list[Article] = []
     for article in articles:
-        if not _is_duplicate(article, unique):
+        existing = _is_duplicate(article, unique)
+        if existing is None:
             unique.append(article)
+        else:
+            # Increment coverage count on the existing article
+            existing.coverage_count += 1
+            # If the new article has a higher credibility weight, swap it in
+            if article.credibility_weight > existing.credibility_weight:
+                idx = unique.index(existing)
+                article.coverage_count = existing.coverage_count
+                unique[idx] = article
     return unique
 
 
@@ -47,13 +63,13 @@ class CompositeFetcher(IArticleFetcher):
 
     Args:
         fetchers: List of IArticleFetcher instances to aggregate.
-        max_workers: Maximum number of parallel threads (default: 8).
+        max_workers: Maximum number of parallel threads (default: 10).
     """
 
     def __init__(
         self,
         fetchers: list[IArticleFetcher],
-        max_workers: int = 8,
+        max_workers: int = 10,
     ) -> None:
         self._fetchers = fetchers
         self._max_workers = max_workers
@@ -68,6 +84,7 @@ class CompositeFetcher(IArticleFetcher):
 
         Each fetcher runs in its own thread. Failures in individual fetchers
         are logged but do not prevent other fetchers from completing.
+        Coverage count is tracked before deduplication.
         """
         all_articles: list[Article] = []
         errors: list[str] = []
@@ -93,8 +110,16 @@ class CompositeFetcher(IArticleFetcher):
                 f"{len(errors)} source(s) failed: {', '.join(errors)}"
             )
 
-        # Deduplicate
-        unique = _deduplicate(all_articles)
+        # Deduplicate with coverage tracking
+        unique = _deduplicate_with_coverage(all_articles)
+
+        multi_source = [a for a in unique if a.coverage_count > 1]
+        if multi_source:
+            logger.info(
+                "Coverage: %d stories reported by multiple sources",
+                len(multi_source),
+            )
+
         logger.info(
             f"CompositeFetcher: {len(unique)} unique articles "
             f"(from {len(all_articles)} total)"
@@ -104,4 +129,3 @@ class CompositeFetcher(IArticleFetcher):
         unique.sort(key=lambda a: a.published_at, reverse=True)
 
         return unique
-

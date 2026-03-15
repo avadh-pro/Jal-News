@@ -1,9 +1,11 @@
 """Standalone runner for the fetchers module.
 
 Usage:
-    python -m src.fetchers
+    python -m src.fetchers                    # Default health feeds
+    python -m src.fetchers --channel ai-video # Channel-specific feeds
 """
 
+import argparse
 import logging
 import os
 import sys
@@ -17,18 +19,33 @@ logging.basicConfig(
 from src.fetchers.composite import CompositeFetcher
 from src.fetchers.newsapi_fetcher import NewsAPIFetcher
 from src.fetchers.registry import FetcherRegistry
-from src.fetchers.rss_fetcher import RSS_FEEDS, RSSFetcher
+from src.fetchers.rss_fetcher import RSSFetcher
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Fetcher test runner")
+    parser.add_argument("--channel", "-c", type=str, default=None)
+    args = parser.parse_args()
+
+    # Load feeds from channel config or fall back to legacy
+    if args.channel:
+        from src.channels.loader import load_channel
+        channel = load_channel(args.channel)
+        feeds = channel.feeds
+        title = channel.name
+    else:
+        from src.container import _LEGACY_RSS_FEEDS
+        feeds = _LEGACY_RSS_FEEDS
+        title = "Health News Fetcher"
+
     print("=" * 80)
-    print("  Health News Fetcher (SOLID) — Standalone Test Run")
+    print(f"  {title} — Standalone Test Run")
     print("=" * 80)
     print()
 
     # Create individual RSS fetchers from config
     fetchers = []
-    for feed in RSS_FEEDS:
+    for feed in feeds:
         fetcher = RSSFetcher(name=feed["name"], url=feed["url"])
         FetcherRegistry.register(feed["name"], fetcher)
         fetchers.append(fetcher)
@@ -73,4 +90,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

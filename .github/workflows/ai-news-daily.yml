@@ -1,0 +1,118 @@
+# ============================================================================
+# Jal News — AI Channels Daily Digest (GitHub Actions)
+# ============================================================================
+#
+# Runs all AI news channels daily at 8:00 AM IST (2:30 AM UTC).
+# Each channel runs as a separate parallel job via matrix strategy.
+#
+# Schedule: 2:30 AM UTC = 8:00 AM IST (daily)
+# Manual:   Can be triggered from the Actions tab → "Run workflow"
+#
+# Uses the same GitHub Secrets as the health workflow:
+#   - ANTHROPIC_API_KEY, NEWSAPI_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+# ============================================================================
+
+name: AI News Daily Digest
+
+on:
+  schedule:
+    # Daily at 2:30 AM UTC = 8:00 AM IST
+    - cron: '30 2 * * *'
+
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Specific AI channel to run (leave empty for all AI channels)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - ai-news
+          - ai-video
+          - ai-music
+          - ai-coding
+          - ai-motion-graphics
+
+jobs:
+  # ---- Run a single channel (manual trigger with specific channel) ----
+  single-channel:
+    if: ${{ github.event.inputs.channel != '' }}
+    name: "Run: ${{ github.event.inputs.channel }}"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: "Run ${{ github.event.inputs.channel }} channel"
+        run: python fetch.py --channel "${{ github.event.inputs.channel }}"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+  # ---- Run all AI channels in parallel (scheduled or manual with no channel) ----
+  all-channels:
+    if: ${{ github.event.inputs.channel == '' || github.event_name == 'schedule' }}
+    name: "Run: ${{ matrix.channel }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        channel:
+          - ai-news
+          - ai-video
+          - ai-music
+          - ai-coding
+          - ai-motion-graphics
+      fail-fast: false  # Don't cancel other channels if one fails
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: "Run ${{ matrix.channel }} channel"
+        run: python fetch.py --channel "${{ matrix.channel }}"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

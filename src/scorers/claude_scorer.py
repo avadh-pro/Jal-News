@@ -1,14 +1,20 @@
 """Claude-based article scorer using Anthropic API."""
 
+from __future__ import annotations
+
 import json
 import logging
 import re
+from typing import TYPE_CHECKING
 
 import anthropic
 
 from src.core.models import Article
 from src.scorers.base import BaseScorer
-from src.scorers.prompt import SYSTEM_PROMPT, build_scoring_prompt
+from src.scorers.prompt import build_scoring_prompt, build_system_prompt
+
+if TYPE_CHECKING:
+    from src.channels.channel import Channel
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +51,7 @@ class ClaudeScorer(BaseScorer):
         api_key: Anthropic API key.
         model: Model identifier (default: claude-haiku-4-5-20251001).
         batch_size: Number of articles per API call (default: 10).
+        channel: Optional channel config for topic-specific scoring prompts.
     """
 
     def __init__(
@@ -52,43 +59,39 @@ class ClaudeScorer(BaseScorer):
         api_key: str,
         model: str = DEFAULT_MODEL,
         batch_size: int = 10,
+        channel: Channel | None = None,
     ) -> None:
         super().__init__(batch_size=batch_size)
         self.model = model
         self._client = anthropic.Anthropic(api_key=api_key)
+        self._channel = channel
 
     def _score_batch(
         self,
         articles: list[Article],
         start_index: int,
     ) -> list[dict]:
-        """Score a single batch of articles via the Claude API.
-
-        Args:
-            articles: The batch of Article objects to score.
-            start_index: The global index offset for this batch.
-
-        Returns:
-            List of score dicts with keys: index, shareability, novelty,
-            relevance, viral_potential, summary.
-        """
+        """Score a single batch of articles via the Claude API."""
         batch_dicts = [
             {
                 "index": i,
                 "title": a.title,
                 "description": a.description or "(no description)",
                 "source_name": a.source_name,
+                "source_tier": a.source_tier,
+                "coverage_count": a.coverage_count,
             }
             for i, a in enumerate(articles)
         ]
 
-        prompt = build_scoring_prompt(batch_dicts)
+        prompt = build_scoring_prompt(batch_dicts, channel=self._channel)
+        system = build_system_prompt(channel=self._channel)
 
         try:
             response = self._client.messages.create(
                 model=self.model,
                 max_tokens=2048,
-                system=SYSTEM_PROMPT,
+                system=system,
                 messages=[{"role": "user", "content": prompt}],
             )
             raw_text = response.content[0].text
@@ -108,4 +111,3 @@ class ClaudeScorer(BaseScorer):
                 f"Unexpected error scoring batch at index {start_index}: {e}"
             )
             return []
-

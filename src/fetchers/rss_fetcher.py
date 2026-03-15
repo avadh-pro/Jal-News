@@ -14,19 +14,6 @@ from src.fetchers.base import BaseFetcher
 
 logger = logging.getLogger(__name__)
 
-# Default RSS feed sources (used by __main__.py for convenience)
-RSS_FEEDS = [
-    {"name": "ScienceDaily Health", "url": "https://www.sciencedaily.com/rss/health_medicine.xml"},
-    {"name": "BBC Health", "url": "http://feeds.bbci.co.uk/news/health/rss.xml"},  # NEW - replaces Medical News Today
-    {"name": "Medical Xpress", "url": "https://medicalxpress.com/rss-feed/"},
-    {"name": "WHO News", "url": "https://www.who.int/rss-feeds/news-english.xml"},
-    {"name": "STAT News", "url": "https://www.statnews.com/feed/"},  # NEW - replaces Healthline
-    {"name": "ET HealthWorld", "url": "https://health.economictimes.indiatimes.com/rss/topstories"},
-    {"name": "PhysioUpdate", "url": "https://www.physioupdate.co.uk/feed/"},
-    {"name": "CDC Newsroom", "url": "https://tools.cdc.gov/podcasts/feed.asp?feedid=183"},  # NEW - additional source
-    {"name": "Health Affairs", "url": "https://www.healthaffairs.org/action/showFeed?type=etoc&feed=rss&jc=hlthaff"},  # NEW - additional source
-]
-
 
 def _parse_published_date(entry: dict) -> Optional[datetime]:
     """Parse the published date from an RSS entry."""
@@ -81,7 +68,12 @@ def _extract_image_url(entry: dict) -> Optional[str]:
     return None
 
 
-def _entry_to_article(entry: dict, source_name: str) -> Optional[Article]:
+def _entry_to_article(
+    entry: dict,
+    source_name: str,
+    source_tier: str = "general",
+    credibility_weight: float = 1.0,
+) -> Optional[Article]:
     """Convert an RSS feed entry to an Article object."""
     title = entry.get("title", "").strip()
     if not title:
@@ -107,6 +99,8 @@ def _entry_to_article(entry: dict, source_name: str) -> Optional[Article]:
         source_name=source_name,
         published_at=published_at,
         image_url=image_url,
+        source_tier=source_tier,
+        credibility_weight=credibility_weight,
     )
 
 
@@ -116,11 +110,21 @@ class RSSFetcher(BaseFetcher):
     Args:
         name: Human-readable name for this feed source.
         url: The RSS feed URL to fetch from.
+        source_tier: Credibility tier (e.g. "primary", "expert", "major-outlet", "aggregator").
+        credibility_weight: Multiplier for the composite score (0.0-1.0).
     """
 
-    def __init__(self, name: str, url: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        url: str,
+        source_tier: str = "general",
+        credibility_weight: float = 1.0,
+    ) -> None:
         super().__init__(fetcher_name=name)
         self._url = url
+        self._source_tier = source_tier
+        self._credibility_weight = credibility_weight
 
     @property
     def url(self) -> str:
@@ -139,17 +143,17 @@ class RSSFetcher(BaseFetcher):
 
         articles: list[Article] = []
         for entry in feed.entries:
-            article = _entry_to_article(entry, source_name=self._name)
-            if article:
-                # Only include articles from the last 3 days.
-                # Articles without a real published_at get datetime.now() in
-                # _entry_to_article, so they pass through by default.
-                if article.published_at >= cutoff_date:
-                    articles.append(article)
+            article = _entry_to_article(
+                entry,
+                source_name=self._name,
+                source_tier=self._source_tier,
+                credibility_weight=self._credibility_weight,
+            )
+            if article and article.published_at >= cutoff_date:
+                articles.append(article)
 
         logger.info(
             "RSS '%s': %d entries parsed, %d after 3-day filter",
             self._name, len(feed.entries), len(articles),
         )
         return articles
-

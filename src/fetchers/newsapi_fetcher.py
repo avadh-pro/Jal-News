@@ -15,7 +15,7 @@ from src.fetchers.base import BaseFetcher
 logger = logging.getLogger(__name__)
 
 NEWSAPI_BASE_URL = "https://newsapi.org/v2/everything"
-NEWSAPI_HEALTH_QUERY = (
+NEWSAPI_DEFAULT_QUERY = (
     '"health news" OR "medical research" OR "clinical trial" '
     'OR "public health" OR "physiotherapy" OR "healthcare"'
 )
@@ -36,15 +36,19 @@ def _parse_newsapi_date(date_str: Optional[str]) -> datetime:
 
 
 class NewsAPIFetcher(BaseFetcher):
-    """Fetches health news articles from NewsAPI.org.
+    """Fetches news articles from NewsAPI.org.
 
     Args:
         api_key: NewsAPI API key (injected, not read from env).
+        query: Custom search query. Defaults to a generic health query.
+        domains: Comma-separated domain whitelist (e.g. "techcrunch.com,wired.com").
     """
 
-    def __init__(self, api_key: str) -> None:
+    def __init__(self, api_key: str, query: str = "", domains: str = "") -> None:
         super().__init__(fetcher_name="NewsAPI")
         self._api_key = api_key
+        self._query = query or NEWSAPI_DEFAULT_QUERY
+        self._domains = domains
 
     def _fetch_impl(self) -> list[Article]:
         """Fetch articles from NewsAPI."""
@@ -52,14 +56,16 @@ class NewsAPIFetcher(BaseFetcher):
             logger.warning("No NewsAPI key provided. Skipping NewsAPI.")
             return []
 
-        # REMOVED: from_date filter — free tier doesn't work well with date filters
-        params = {
-            "q": NEWSAPI_HEALTH_QUERY,
+        params: dict[str, str | int] = {
+            "q": self._query,
             "sortBy": "publishedAt",
             "pageSize": NEWSAPI_PAGE_SIZE,
             "language": "en",
             "apiKey": self._api_key,
         }
+
+        if self._domains:
+            params["domains"] = self._domains
 
         response = requests.get(NEWSAPI_BASE_URL, params=params, timeout=30)
         response.raise_for_status()
@@ -85,14 +91,16 @@ class NewsAPIFetcher(BaseFetcher):
                 continue
 
             source_name = item.get("source", {}).get("name", "NewsAPI")
+            source_id = item.get("source", {}).get("id")
             published_at = _parse_newsapi_date(item.get("publishedAt"))
             image_url = item.get("urlToImage")
 
-            # Only include articles from the last 3 days.
-            # Articles without a publishedAt get datetime.now() from
-            # _parse_newsapi_date, so they pass through by default.
             if published_at < cutoff_date:
                 continue
+
+            # NewsAPI sources with a non-null source.id are established outlets
+            tier = "major-outlet" if source_id else "general"
+            weight = 0.9 if source_id else 0.7
 
             articles.append(
                 Article(
@@ -102,6 +110,8 @@ class NewsAPIFetcher(BaseFetcher):
                     source_name=source_name,
                     published_at=published_at,
                     image_url=image_url,
+                    source_tier=tier,
+                    credibility_weight=weight,
                 )
             )
 
@@ -110,4 +120,3 @@ class NewsAPIFetcher(BaseFetcher):
             len(data.get("articles", [])), len(articles),
         )
         return articles
-
