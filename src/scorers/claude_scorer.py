@@ -12,7 +12,7 @@ from src.scorers.prompt import SYSTEM_PROMPT, build_scoring_prompt
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "claude-3-haiku-20240307"
+DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 
 
 def _parse_scores(raw: str) -> list[dict]:
@@ -43,7 +43,7 @@ class ClaudeScorer(BaseScorer):
 
     Args:
         api_key: Anthropic API key.
-        model: Model identifier (default: claude-3-haiku-20240307).
+        model: Model identifier (default: claude-haiku-4-5-20251001).
         batch_size: Number of articles per API call (default: 10).
     """
 
