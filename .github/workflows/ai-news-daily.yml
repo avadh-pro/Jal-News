@@ -1,15 +1,19 @@
 # ============================================================================
-# Jal News — AI Channels Daily Digest (GitHub Actions)
+# Jal News — AI Channels Digest (Every 2 Days)
 # ============================================================================
 #
-# Runs all AI news channels daily at 8:00 AM IST (2:30 AM UTC).
+# Runs all AI news channels every 2 days at 8:00 AM IST (2:30 AM UTC).
 # Each channel runs as a separate parallel job via matrix strategy.
+# Uses a SEPARATE Telegram bot from the health channel.
 #
-# Schedule: 2:30 AM UTC = 8:00 AM IST (daily)
+# Schedule: 2:30 AM UTC = 8:00 AM IST (every 2 days)
 # Manual:   Can be triggered from the Actions tab → "Run workflow"
 #
-# Uses the same GitHub Secrets as the health workflow:
-#   - ANTHROPIC_API_KEY, NEWSAPI_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+# Required GitHub Secrets:
+#   - ANTHROPIC_API_KEY       : Claude AI API key (shared with health)
+#   - NEWSAPI_KEY             : NewsAPI.org key (shared with health)
+#   - AI_TELEGRAM_BOT_TOKEN   : Telegram Bot token for AI news bot (@Lunasproductionbot)
+#   - AI_TELEGRAM_CHAT_ID     : Target chat ID for AI news bot
 # ============================================================================
 
 name: AI News Digest (Every 2 Days)
@@ -68,8 +72,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.AI_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.AI_TELEGRAM_CHAT_ID }}
 
   # ---- Run all AI channels in parallel (scheduled or manual with no channel) ----
   all-channels:
@@ -85,7 +89,7 @@ jobs:
           - ai-music
           - ai-coding
           - ai-motion-graphics
-      fail-fast: false  # Don't cancel other channels if one fails
+      fail-fast: false
 
     steps:
       - name: Checkout code
@@ -114,5 +118,5 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.AI_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.AI_TELEGRAM_CHAT_ID }}
